@@ -1,70 +1,112 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { View } from 'react-native'
-import styles from '../styles'
-import { RNCamera } from 'react-native-camera'
+import { Dimensions, View, Text, TouchableOpacity } from 'react-native'
+import { Camera } from 'expo-camera';
+import { BarCodeScanner } from 'expo-barcode-scanner';
 import { StackNavigationProp } from '@react-navigation/stack'
 import PropTypes from 'prop-types'
+
+import styles from '../styles'
 import { RootStackParamList } from '../types'
+
 export interface ScanScreenProps {
   navigation: StackNavigationProp<RootStackParamList, 'Scan'>
 }
 
-const Scan: React.FC<ScanScreenProps> = ({ navigation }) => {
-  const [isCameraReady, setIsCameraReady] = useState(false)
-  const [isBarcodeRead, setIsBarcodeRead] = useState(false)
-  const [startTime, setStartTime] = useState<any>()
-  const [howMuchTime, setHowMuchTime] = useState<Number>()
+interface ScanScreenState {
+  startTime: any,
+  endTime: any,
+  code: any
+}
 
-  const _onBarcodeScanned = useCallback((code) => {
-    setIsBarcodeRead(true)
+const Scan: React.FC<ScanScreenProps> = ({ navigation }) => {  
+  const [
+    state, 
+    setState
+  ] = useState<ScanScreenState>({
+    startTime: null,
+    endTime: null,
+    code: null
+  })
 
-    navigation.reset({
-      index: 0,
-      routes: [{
-        name: 'Result',
-        params: {
-          ...code,
-          time: howMuchTime
-        }
-      }]
-    })
-  }, [howMuchTime])
+  const {
+    startTime,
+    endTime,
+    code
+  } = state;
+
+  const [torch, setTorch] = useState(false)
 
   useEffect(() => {
-    if (isCameraReady && isBarcodeRead) {
-      const end = Date.now()
-      const diff = end - startTime
+    if (startTime && endTime) {
+      const diff = endTime - startTime
 
-      setHowMuchTime(diff)
+      navigation.reset({
+        index: 0,
+        routes: [{
+          name: 'Result',
+          params: {
+            ...code,
+            time: diff
+          }
+        }]
+      })
+
     }
-  }, [isBarcodeRead, isCameraReady])
+  }, [startTime, endTime])
 
   const onCameraReady = useCallback(() => {
-    setStartTime(Date.now())
-    setIsCameraReady(true)
+    setState(prevState => ({
+      ...prevState,
+      startTime: Date.now()
+    }))
   }, [])
 
+  const onBarcodeScanned = useCallback((code: any) => {
+    setState(prevState => ({
+      ...prevState,
+      code,
+      endTime: Date.now()
+    }))
+  }, [])
+
+  const flashMode = torch 
+    ? Camera.Constants.FlashMode.torch
+    : Camera.Constants.FlashMode.off
+
+  const cameraWidth = Dimensions.get("window").width - 40
+  const cameraHeight = Math.round((cameraWidth * 4) / 3)
+
+  const barCodeTypes = [
+    BarCodeScanner.Constants.BarCodeType.datamatrix,
+    BarCodeScanner.Constants.BarCodeType.qr,
+    BarCodeScanner.Constants.BarCodeType.ean13,
+    BarCodeScanner.Constants.BarCodeType.code128,
+    BarCodeScanner.Constants.BarCodeType.code39,
+    BarCodeScanner.Constants.BarCodeType.interleaved2of5
+  ];
+
   return (
-        <View style={styles.mainContainer}>
-            <RNCamera
-                style = {styles.preview}
-                captureAudio={false}
-                onCameraReady={onCameraReady}
-                flashMode={RNCamera.Constants.FlashMode.auto}
-                type={RNCamera.Constants.Type.back}
-                autoFocus={RNCamera.Constants.AutoFocus.on}
-                onBarCodeRead={_onBarcodeScanned}
-                barCodeTypes={[
-                  RNCamera.Constants.BarCodeType.datamatrix,
-                  RNCamera.Constants.BarCodeType.qr,
-                  RNCamera.Constants.BarCodeType.ean13,
-                  RNCamera.Constants.BarCodeType.code128,
-                  RNCamera.Constants.BarCodeType.code39,
-                  RNCamera.Constants.BarCodeType.interleaved2of5,
-                  RNCamera.Constants.BarCodeType.itf14
-                ]}
-            />
-        </View>
+    <View style={styles.mainContainer}>
+      <Camera 
+        style={{
+          height: cameraHeight,
+          width: cameraWidth
+        }}
+        autoFocus={Camera.Constants.AutoFocus.on}
+        onCameraReady={onCameraReady}
+        onBarCodeScanned={onBarcodeScanned}
+        flashMode={flashMode}
+        barCodeScannerSettings={{barCodeTypes}}
+      />
+      <TouchableOpacity
+        onPress={()=>setTorch(prev=>!prev)}
+        style={styles.btn}
+      >
+        <Text style={{ color: 'white' }}>
+          {torch ? 'Light Off' : 'Light On'}
+        </Text>
+      </TouchableOpacity>
+    </View>
   )
 }
 
