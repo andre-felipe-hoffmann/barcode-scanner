@@ -88,10 +88,7 @@ const Scan: React.FC<ScanScreenProps> = ({ navigation }) => {
   return (
     <View style={styles.mainContainer}>
       <Camera 
-        style={{
-          height: cameraHeight,
-          width: cameraWidth
-        }}
+        style={{height: cameraHeight, width: cameraWidth}}
         autoFocus={Camera.Constants.AutoFocus.on}
         onCameraReady={onCameraReady}
         onBarCodeScanned={onBarcodeScanned}
