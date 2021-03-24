@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { Dimensions, View, Text, TouchableOpacity } from 'react-native'
-import { Camera } from 'expo-camera';
-import { BarCodeScanner } from 'expo-barcode-scanner';
+import { Camera } from 'expo-camera'
+import { BarCodeScanner } from 'expo-barcode-scanner'
 import { StackNavigationProp } from '@react-navigation/stack'
 import PropTypes from 'prop-types'
 
@@ -18,9 +18,9 @@ interface ScanScreenState {
   code: any
 }
 
-const Scan: React.FC<ScanScreenProps> = ({ navigation }) => {  
+const Scan: React.FC<ScanScreenProps> = ({ navigation }) => {
   const [
-    state, 
+    state,
     setState
   ] = useState<ScanScreenState>({
     startTime: null,
@@ -32,7 +32,7 @@ const Scan: React.FC<ScanScreenProps> = ({ navigation }) => {
     startTime,
     endTime,
     code
-  } = state;
+  } = state
 
   const [torch, setTorch] = useState(false)
 
@@ -50,7 +50,6 @@ const Scan: React.FC<ScanScreenProps> = ({ navigation }) => {
           }
         }]
       })
-
     }
   }, [startTime, endTime])
 
@@ -69,11 +68,11 @@ const Scan: React.FC<ScanScreenProps> = ({ navigation }) => {
     }))
   }, [])
 
-  const flashMode = torch 
+  const flashMode = torch
     ? Camera.Constants.FlashMode.torch
     : Camera.Constants.FlashMode.off
 
-  const cameraWidth = Dimensions.get("window").width - 40
+  const cameraWidth = Dimensions.get('window').width - 40
   const cameraHeight = Math.round((cameraWidth * 4) / 3)
 
   const barCodeTypes = [
@@ -82,21 +81,22 @@ const Scan: React.FC<ScanScreenProps> = ({ navigation }) => {
     BarCodeScanner.Constants.BarCodeType.ean13,
     BarCodeScanner.Constants.BarCodeType.code128,
     BarCodeScanner.Constants.BarCodeType.code39,
-    BarCodeScanner.Constants.BarCodeType.interleaved2of5
-  ];
+    BarCodeScanner.Constants.BarCodeType.interleaved2of5,
+    BarCodeScanner.Constants.BarCodeType.itf14
+  ]
 
   return (
     <View style={styles.mainContainer}>
-      <Camera 
-        style={{height: cameraHeight, width: cameraWidth}}
+      <Camera
+        style={{ height: cameraHeight, width: cameraWidth }}
         autoFocus={Camera.Constants.AutoFocus.on}
         onCameraReady={onCameraReady}
         onBarCodeScanned={onBarcodeScanned}
         flashMode={flashMode}
-        barCodeScannerSettings={{barCodeTypes}}
+        barCodeScannerSettings={{ barCodeTypes }}
       />
       <TouchableOpacity
-        onPress={()=>setTorch(prev=>!prev)}
+        onPress={() => setTorch(prev => !prev)}
         style={styles.btn}
       >
         <Text style={{ color: 'white' }}>
